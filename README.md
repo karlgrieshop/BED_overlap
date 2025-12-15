@@ -60,12 +60,12 @@ cd BED_overlap
 
 ### Step 1: Copy BED files from the HPC shared directory
 
-Log into the HPC and copy the two indel files to your local working directory:
+Log into the HPC and copy the two indel files to a sensible HPC directory:
 
 ```bash
 ssh <abc12xyz>@hali.uea.ac.uk
 interactive-bio-ds
-cp /gpfs/data/BIO-DSB/Session2/*.bed ~/scratch/where_you_want_it/
+cp /gpfs/data/BIO-DSB/Session2/*.bed ~/scratch/
 ```
 
 Then download these files to your local `BED_overlap/` directory using `scp` (secure copy protocol):
@@ -110,16 +110,18 @@ Example:
 
 ### Step 3: Visualise the BED files in IGV (Integrated Genome Viewer)
 
+In case you missed it, here's a [video tutorial for IGV](https://www.youtube.com/watch?v=YpNg0hNUuo8&list=PLSplvWwdPpSoyXjQ0xPs46CcA9Nzano9F).
+
 Use IGV locally to load both BED files as separate tracks and inspect overlaps visually.
 - Launch IGV.
-- Set the genome to Drosophila melanogaster (dm6/BDGP6; match the build used for these BED files).
+- Set the genome to *Drosophila melanogaster* (dm6/BDGP6; match the build used for these BED files).
 - Load tracks:
   - File → Load from File… → select `DPure_indels_mask.bed`
   - File → Load from File… → select `LPure_indels_mask.bed`
 - Zoom to regions and note apparent overlaps, differences, and any systematic patterns.
 - If IGV warns about mismatched coordinates, verify you selected the correct genome build.
 
-Tip: Use the video tutorial provided beforehand if you need a refresher on IGV.
+Tip: What is an "overlap" between LPure and DPure indels now that you've seen that data? Try to image a rule or set of rules that you could apply to to identify and count up the overlapping indel regions.
 
 ---
 
@@ -127,26 +129,26 @@ Tip: Use the video tutorial provided beforehand if you need a refresher on IGV.
 
 **Can do locally or on HPC - you decide**
 
-Use `awk`, `sort`, and `uniq` to identify overlapping indels by matching on chromosome and position ranges.
+Use the common and powerful Unix commands you've learned (e.g. `awk`, `sort`, `grep`, `uniq`) to identify overlapping indels by matching on chromosome and position ranges.
 
-**Challenge:** Write a series of Unix commands to find indels that overlap between the two populations. You may use:
-- `awk` to extract and compare columns
-- `sort` and `uniq` to identify duplicates
-- `grep` to filter results
-- Pipes (`|`) to chain commands
-
-**Tips:**
-- Consider what "overlap" means in the context of genomic features (do coordinates have to match exactly, or just fall within similar ranges?).
-- Document each step: what does each command do? **How do you know it worked?**
-- Save your command pipeline to a file for reproducibility.
-- Check the Bioinformatics_Onboarding/Unix_help/Unix_CheatSheet.md for some powerful one-liner ideas.
-- Don't forget you have Copilot to help you.
-
-**Suggested approach:**
+**Suggested approach:** Try commands one at a time to understand the output before piping tasks together into an overall output.
 1. Extract chromosome and position info from both files.
 2. Combine and sort the data.
 3. Identify duplicates or overlaps.
 4. Count the results.
+5. Some likely useful commands:
+ - `awk` to extract and compare columns
+ - `sort` and `uniq` to identify duplicates
+ - `grep` to filter results
+ - Pipes (`|`) to chain commands
+ - `>` to output findings to a file (maybe a .txt file)
+
+ **Tips:**
+- Consider what "overlap" means in the context of genomic features (do coordinates have to match exactly, or just fall within similar ranges?).
+- Document each step: what does each command do? **How do you know it worked?**
+- Save your command pipeline to a file for reproducibility.
+- Check the Bioinformatics_Onboarding/Unix_help/Unix_CheatSheet.md for some powerful one-liner ideas.
+- **Don't forget you have Copilot to help you.**
 
 ---
 
@@ -177,7 +179,8 @@ bedtools intersect --help
 
 **Run BEDtools to find overlaps:**
 ```bash
-# recall you put the *.bed flies in ~/scratch/where_you_put_it/
+# Recall you put the *.bed flies in ~/scratch/where_you_put_it/
+# You'll either need to be in that directory, or include it in your file_names:
 bedtools intersect -a DPure_indels_mask.bed -b LPure_indels_mask.bed > overlapping_indels.bed
 ```
 
@@ -236,34 +239,36 @@ Take the Unix and BEDtools commands you ran interactively (Steps 4–6) and plac
 
 - Open the script **locally** in VS Code and fill the TODO lines (paths, email, your commands, etc., **hint:** `ctl + f` "TODO").
 - Keep it simple: sort inputs, run your Unix overlap attempt, run `bedtools intersect`, and write outputs to the `output/` folder.
-- Move your modified BED_overlap.sh script to the HPC somehow
+- **Save** your changes to the BED_overlap.sh script!
+- Then, **move** your modified BED_overlap.sh script to the HPC somehow
  - Two options: 
- 1. `add` `commit` and `push` changes to your repo, and `clone` or `pull` those changes to your HPC account.
- 2. `scp` the BED_overlap script from local to HPC workspace.
-- Submit and monitor on the HPC:
+ 1. Use GitHub: `add` `commit` and `push` changes to your repo, then `clone` or `pull` those changes to your HPC account - highly reproducible, uses GitHub to mirror your work and keeps a record of changes.
+ 2. Use scp: `scp` the BED_overlap script from local to HPC workspace, the same way you did with the *.bed files earlier - quicker, but less reproducible because local and HPC workspaces may not match exactly, changes not recorded in your `git log`, and no opportunity to `git checkout` previous versions in future.
+- Then, **submit** and monitor on the HPC:
 ```bash
 cd scratch/where_you_put/SLURM_scripting/
 sbatch BED_overlap.sh
 squeue -u <abc12xyz>          # watch your job
 tail -n 20 output/comparison_summary.txt  # quick check
   ```
-- Aim for a minimal summary (counts) rather than fancy tables—focus on clarity and reproducibility.
+
 - **Trouble?** Make sure input and output paths are logical. Think about where you are (`pwd`), where your input files are, and where your output/ folder is.
 
 ---
 
 ### Step 8: Document your findings
 
-Create a brief report (Markdown or text file) that includes:
+Make some brief notes (Markdown or text file) that includes:
 1. **Methods:** Describe your Unix approach and your BEDtools approach in clear language.
 2. **Results:** Number of overlapping indels found by each method.
 3. **Comparison:** Were results identical? Why or why not?
 4. **Reflection:** Which approach is more suitable for reproducible research? Why does standardised software matter?
 
-Commit this report to your local BED_overlap repo and push to GitHub:
+Commit this report to your local BED_overlap repo and push it to GitHub:
 ```bash
-git add report.md
-git commit -m "Session 2: BED_overlap analysis and comparison of Unix vs BEDtools"
+# From within the repo
+git add report.md       # or git add --all
+git commit -m "BED_overlap complete: Analysis and comparison of Unix vs BEDtools"
 git push origin main
 ```
 
@@ -276,16 +281,16 @@ git push origin main
 - **Scalability:** Efficient algorithms designed for large genomic datasets.
 - **Credibility:** Methods reviewers can trust and validate.
 
-Ad-hoc Unix pipelines are powerful and flexible, and you may need them for non-standard tasks, but then you're on your own to validate the output and document in a reproducible way.
+Ad-hoc Unix pipelines are powerful and flexible, and you may need them for some tasks, but then you're on your own to validate the output and document the approach in reproducible way.
 
 ---
 
 ## Group Project ideas
 
 Take this further in some way or ways (remember: chief marking criteria for group project is the reproducibility):
-- Do the oposite. Find the uniqe indels between populations.
+- Do the oposite of "overlap." Find the uniqe indels between populations.
 - Characterse the unique or overlapping indels further (beyond counts, maybe size, or chromosomal locations).
-- Are some chromosomes enriched for proportionally more indels, unique indelsm and/or overlapping indels, than others? 
+- Statistical: Are some chromosomes (X, 2, 3) enriched for proportionally more indels, unique indels and/or overlapping indels, than expected by chance? 
 
 ---
 
